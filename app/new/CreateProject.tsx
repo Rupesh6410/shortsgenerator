@@ -10,6 +10,7 @@ import { ShineBorder } from '@/components/ui/shine-border'
 import { PlaceholdersAndVanishInput } from '../../components/ui/placeholders-and-vanish-input'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useRouter } from 'next/navigation'
+import createVideo from '../actions/create'
 
 const CreateProject = ({user,credits}: {user: string | null, credits: number}) => {
 
@@ -77,7 +78,7 @@ const CreateProject = ({user,credits}: {user: string | null, credits: number}) =
                             if(credits<1){
                                 setTimeout(() => setShowCreditsDialog(true), 700)
                             }
-                          
+                           createVideo(prompt)
                         }}
                     />
                 </div>

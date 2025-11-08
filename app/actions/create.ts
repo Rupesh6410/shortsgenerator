@@ -1,10 +1,15 @@
+"use server"
 import { prisma } from '@/lib/db'
 import decreaseCredits from '@/lib/decreaseCredits'
 import { currentUser } from '@clerk/nextjs/server'
 import { randomUUID } from 'crypto'
+import processes from './processes'
+
+
 
 
 const createVideo = async(prompt:string) => {
+
     const videoId = randomUUID()
     const user = await currentUser()
     const userId= user?.id
@@ -23,7 +28,7 @@ const createVideo = async(prompt:string) => {
 
     await decreaseCredits(userId)
 
-
+    processes(videoId)
 
 
   return {videoId}
