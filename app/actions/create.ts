@@ -4,6 +4,7 @@ import decreaseCredits from '@/lib/decreaseCredits'
 import { currentUser } from '@clerk/nextjs/server'
 import { randomUUID } from 'crypto'
 import processes from './processes'
+import { generateImages } from './image'
 
 
 
@@ -28,7 +29,8 @@ const createVideo = async(prompt:string) => {
 
     await decreaseCredits(userId)
 
-    processes(videoId)
+    await processes(videoId)
+    await generateImages(videoId)
 
 
   return {videoId}

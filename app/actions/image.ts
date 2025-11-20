@@ -1,7 +1,7 @@
-import React from 'react'
-import { GoogleGenAI } from "@google/genai";
+import Replicate from "replicate"
 import { randomUUID } from 'crypto';
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { prisma } from "@/lib/db";
 
 
 const s3Client = new S3Client({
@@ -14,48 +14,108 @@ const s3Client = new S3Client({
 
 const bucketName = process.env.S3_BUCKET_NAME || '';
 
-const processImage = async(img:string) => {
-    try {
-    const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
-
-    
-
-    const response : any = await ai.models.generateContent({
-        model: "gemini-2.5-flash-image",
-        contents: img,
-        config:{
-            imageConfig:{
-                aspectRatio:"16:9",
-                
-            }
-        }
-    
-  });
-  for (const part of response.candidates[0].content.parts) {
-    if (part.inlineData) {
-        const imageData = part.inlineData.data;
-        const buffer = Buffer.from(imageData, "base64");
-        const fileName = `${randomUUID()}.png`;
-        const command = new PutObjectCommand({ 
-            Bucket: bucketName,
-            Key: fileName,
-            Body: buffer,
-            ContentType: "image/png",
-        }); 
-        await s3Client.send(command); 
-       const s3Url = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`
-        return s3Url
-  }
-
-        
-
-    } 
-  
+interface ReplicateOutput {
+    url: () => URL;
 }
-catch (error) {
-        console.error('error while generating image from gemini', error)
+
+const replicate = new Replicate({
+    auth: process.env.REPLICATE_API_TOKEN
+})
+
+const processImage = async (img: string) => {
+  try {
+    const input = {
+      prompt: img,
+      go_fast: true,
+      megapixels: "1",
+      num_outputs: 1,
+      aspect_ratio: "16:9",
+      output_format: "png",
+      output_quality: 80,
+      num_inference_steps: 4,
+    };
+
+    const streams: any = await replicate.run(
+      "black-forest-labs/flux-schnell",
+      { input }
+    );
+
+    if (!streams?.[0]) throw new Error("Flux returned no stream");
+
+    const reader = streams[0].getReader();
+    const chunks: Uint8Array[] = [];
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+
+    const buffer = Buffer.concat(chunks);
+
+    const fileName = `${randomUUID()}.png`;
+
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: fileName,
+        Body: buffer,
+        ContentType: "image/png",
+      })
+    );
+
+    const s3Url = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+    console.log(s3Url)
+
+    return s3Url;
+
+  } catch (error) {
+    console.error("Error while generating image from replicate:", error);
+    throw error;
+  }
+};
+
+
+
+export const generateImages = async (videoId: string) => {
+    try {
+        const video = await prisma.video.findUnique({
+            where: {
+                videoId: videoId
+            }
+        })
+        if (!video) {
+            return null
+        }
+
+        const imagePromises = video.imagePrompts.map(img => processImage(img))
+
+        const imageLinks = await Promise.all(imagePromises)
+
+        console.log(imageLinks)
+
+//         const imageLinks = [
+//   'https://shortsgenerator.s3.eu-north-1.amazonaws.com/c2bf1da6-54a0-441b-be6b-f161b74b3921.png',
+//   'https://shortsgenerator.s3.eu-north-1.amazonaws.com/1eea49fa-43e2-4bf2-be9a-128a726879ea.png',
+//   'https://shortsgenerator.s3.eu-north-1.amazonaws.com/08085e0f-059b-46e2-bf9b-18cb89f651a7.png',
+//   'https://shortsgenerator.s3.eu-north-1.amazonaws.com/feec8509-1ae6-4a66-9875-d32aedb2a3ca.png',
+//   'https://shortsgenerator.s3.eu-north-1.amazonaws.com/bed0f1a7-ccc4-4776-9ee6-1d1f80f9e6a1.png',
+//   'https://shortsgenerator.s3.eu-north-1.amazonaws.com/5c2eca13-fac2-4741-a744-002f030723f0.png'
+// ]
+
+        await prisma.video.update({
+            where: {
+                videoId: videoId
+            },
+            data: {
+                imageLinks: imageLinks,
+                thumbnail: imageLinks[0]
+            }
+        })
+
+    }
+    catch (error) {
+        console.error('error while generating image:', error)
         throw error
     }
 }
-
-export default processImage
