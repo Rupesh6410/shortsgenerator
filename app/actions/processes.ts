@@ -1,6 +1,13 @@
 import findPrompt from '@/lib/findPrompt'
 import {generateScript} from './script'
 import { prisma } from '@/lib/db'
+import { generateImages } from './image'
+import { generateAudio } from './audio'
+import { generateCaptions } from './captions'
+import { videoDuration } from '@/lib/duration'
+import { renderVideo } from './render'
+
+
 
 
 const processes = async(videoId:string) => {
@@ -26,6 +33,13 @@ const processes = async(videoId:string) => {
         }
      })
      
+    const imagePromises = generateImages(videoId)
+    await generateAudio(videoId)
+    await generateCaptions(videoId)
+    await imagePromises
+    await videoDuration(videoId)
+    await renderVideo(videoId)
+
  } catch (error) {
     console.log("making vidoes error",error)
  }
