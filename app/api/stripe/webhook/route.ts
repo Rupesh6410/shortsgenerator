@@ -22,9 +22,9 @@ export async function POST(req: Request) {
         const priceId = session.metadata?.priceId
 
         const creditMap: Record<string, number> = {
-            'price_1RVYbjPM25qIcCJylPrLwuB3': 2,
-            'price_1RVYbjPM25qIcCJyLxMbyXVt': 50,
-            'price_1RVYbjPM25qIcCJykbf1ZISV': 100
+            'price_1SXzGjPXL7FpJPhppwooQegy': 1,
+            'price_1SXzM2PXL7FpJPhppyElv3Se': 25,
+            'price_1SXzHQPXL7FpJPhpYiQpgIZ6': 150
         }
 
         const creditsToAdd = creditMap[priceId || ''] || 0

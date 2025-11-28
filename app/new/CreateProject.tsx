@@ -1,35 +1,85 @@
 "use client"
-import React from 'react'
-import { useState } from 'react'
+
 import { Button } from '@/components/ui/button'
-import { SignInButton , SignUpButton } from '@clerk/nextjs'
+import { SignInButton, SignUpButton } from '@clerk/nextjs'
 import Link from 'next/link'
-import TooltipCredits from '../../components/CreditButton'
-import { Cover } from '@/components/ui/cover'
-import { ShineBorder } from '@/components/ui/shine-border'
-import { PlaceholdersAndVanishInput } from '../../components/ui/placeholders-and-vanish-input'
+import React, { useState } from 'react'
+import { Cover } from "@/components/ui/cover";
+import { ShineBorder } from '@/components/ui/shine-border';
+import { PlaceholdersAndVanishInput } from '@/components/ui/placeholders-and-vanish-input';
+import TooltipCredits from '@/components/CreditButton'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useRouter } from 'next/navigation'
-import createVideo from '../actions/create'
+import  createVideo from '../actions/create'
+import { MultiStepLoader as Loader } from '@/components/ui/multi-step-loader'
 
-const CreateProject = ({user,credits}: {user: string | null, credits: number}) => {
-
-  const placeholders = [
+const CreateProject = ({ user, credits }: { user: string | null; credits: number }) => {
+    const loadingStates = [
+        { text: "Generating Context" },
+        { text: "Generating Image Scripts" },
+        { text: "Generating Image 1" },
+        { text: "Generating Image 2" },
+        { text: "Generating Image 3" },
+        { text: "Generating Image 4" },
+        { text: "Generating Image 5" },
+        { text: "Generating Audio Script" },
+        { text: "Generating Audio" },
+        { text: "Generating Captions" },
+        { text: "Combining it All" },
+        { text: "Almost done" },
+        { text: "Completed, redirecting" }
+    ]
+    const router = useRouter()
+    const placeholders = [
         "What's the first rule of Fight Club?",
         "Who is Tyler Durden?",
         "Where is Andrew Laeddis Hiding?",
         "Write a Javascript method to reverse a string",
         "How to assemble your own PC?",
     ];
+    const [prompt, setPrompt] = useState("")
+    const [showLoginDialog, setShowLoginDialog] = useState(false)
+    const [showCreditsDialog, setShowCreditsDialog] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
-     const [prompt, setPrompt] = useState("")
-     const [showLoginDialog , setShowLoginDialog] = useState(false)
-     const [showCreditsDialog , setShowCreditsDialog] = useState(false)
-     const router = useRouter()
+    const handleCreateVideo = async () => {
+        setIsLoading(true)
 
-  return (
-    <div className='w-screen h-screen flex flex-col'>
-      {
+        try {
+            const result = await createVideo(prompt)
+
+            if (result?.videoId) {
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch(`/api/video-status/${result.videoId}`)
+                        const data = await response.json()
+
+                        if (data.completed) {
+                            clearInterval(pollInterval)
+                            router.replace(`/videos/${result.videoId}`)
+                        } else if (data.failed) {
+                            clearInterval(pollInterval)
+                            setIsLoading(false)
+                            alert('video generating failed')
+                        }
+                    } catch (error) {
+                        console.log('still processing....')
+                    }
+                }, 5000)
+            } else {
+                setIsLoading(false)
+                alert('failed to creating video')
+            }
+        } catch (error) {
+            setIsLoading(false)
+            console.log('failed to creating video')
+            alert('failed to creating video')
+
+        }
+    }
+    return (
+        <div className='w-screen h-screen flex flex-col'>
+            {
                 !user &&
                 <div className='flex justify-end gap-1 mr-7 mt-5'>
                     <SignInButton>
@@ -54,13 +104,23 @@ const CreateProject = ({user,credits}: {user: string | null, credits: number}) =
                     </Link>
                 </div>
             }
-             <h1 className="text-4xl md:text-4xl lg:text-6xl font-semibold max-w-7xl mx-auto text-center mt-6 relative z-20 py-6 bg-clip-text text-transparent bg-gradient-to-b from-neutral-800 via-neutral-700 to-neutral-700 dark:from-neutral-800 dark:via-white dark:to-white">
+
+            <Loader
+                key={isLoading ? 'loading' : 'idle'}
+                loadingStates={loadingStates}
+                loading={isLoading}
+                duration={10000}
+                loop={false}
+
+            />
+
+            <h1 className="text-4xl md:text-4xl lg:text-6xl font-semibold max-w-7xl mx-auto text-center mt-6 relative z-20 py-6 bg-clip-text text-transparent bg-gradient-to-b from-neutral-800 via-neutral-700 to-neutral-700 dark:from-neutral-800 dark:via-white dark:to-white">
                 Generate realistic short
                 <div className='h-6'></div>
                 <Cover>warp speed</Cover>
             </h1>
 
-             <div className='flex justify-center mt-auto mb-[400px]'>
+            <div className='flex justify-center mt-auto mb-[400px]'>
                 <div className='relative rounded-3xl w-[500px] overflow-hidden'>
                     <ShineBorder
                         className='z-10'
@@ -72,13 +132,13 @@ const CreateProject = ({user,credits}: {user: string | null, credits: number}) =
                         onChange={(e) => setPrompt(e.target.value)}
                         onSubmit={(e) => {
                             e.preventDefault()
-                            if(!user){
-                                setTimeout(() => setShowLoginDialog(true), 700)
+                            if (!user) {
+                                return setTimeout(() => setShowLoginDialog(true), 1000)
                             }
-                            if(credits<1){
-                                setTimeout(() => setShowCreditsDialog(true), 700)
+                            if (credits < 1) {
+                                return setTimeout(() => setShowCreditsDialog(true), 700)
                             }
-                           createVideo(prompt)
+                            setTimeout(() => handleCreateVideo(), 1000)
                         }}
                     />
                 </div>
@@ -136,9 +196,12 @@ const CreateProject = ({user,credits}: {user: string | null, credits: number}) =
                     </DialogContent>
                 </Dialog>
 
-    </div>
-  </div>
-)
+
+            </div>
+
+
+        </div>
+    )
 }
 
 export default CreateProject

@@ -4,6 +4,7 @@ import decreaseCredits from '@/lib/decreaseCredits'
 import { currentUser } from '@clerk/nextjs/server'
 import { randomUUID } from 'crypto'
 import processes from './processes'
+import { videoQueue } from '@/lib/queue'
 
 
 
@@ -24,13 +25,23 @@ const createVideo = async(prompt:string) => {
             processing: true,
         }
     })
+    const userData = await prisma.user.findUnique({
+        where: { userId },
+        select: { credits: true }
+    })
 
+    if (!userData) return null
+
+    
+    if (userData.credits < 1)  return 
+    
+    
     await decreaseCredits(userId)
 
-    await processes(videoId)
+    await videoQueue.add('generate-video', { videoId })
+    console.log('job added to queue succesffuly')
 
-
-  return {videoId}
+    return { videoId }
 }
 
 export default createVideo
