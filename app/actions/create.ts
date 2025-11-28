@@ -25,15 +25,7 @@ const createVideo = async(prompt:string) => {
             processing: true,
         }
     })
-    const userData = await prisma.user.findUnique({
-        where: { userId },
-        select: { credits: true }
-    })
-
-    if (!userData) return null
-
-    
-    if (userData.credits < 1)  return 
+   
     
     
     await decreaseCredits(userId)
