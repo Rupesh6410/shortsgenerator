@@ -52,7 +52,6 @@ export const VideoComponent = ({ imageLinks, audio, captions }: VideoProps) => {
 
     return (
         <AbsoluteFill style={{ backgroundColor: 'black' }}>
-            {/* Image Sequences */}
             {imageLinks.map((imageLink, index) => {
                 const startFrame = index * framesPerImage
                 return (

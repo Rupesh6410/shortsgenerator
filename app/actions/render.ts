@@ -25,8 +25,7 @@ export const renderVideo = async (videoId: string) => {
                 captions: data.captions,
                 durationInFrames: data.duration
             },
-            framesPerLambda: 300
-
+            framesPerLambda: 300,
         })
 
         while (true) {
