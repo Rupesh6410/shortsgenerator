@@ -49,7 +49,7 @@ const page = async({params}:{
                             playsInline
                             src={videoUrl ?? undefined}
                         >
-                            Your old fucking browsder cant run thisvideo
+                            Your old fucking browser cant run thisvideo
                         </video>
                     </div>
                 </div>
