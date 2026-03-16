@@ -2,11 +2,11 @@
   "name": "shortsgenerator",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
+   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "tsc",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "next lint",
     "worker": "tsx worker/worker.ts",
     "worker:dev": "tsx watch worker/worker.ts",
     "postinstall": "prisma generate"
