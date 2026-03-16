@@ -4,9 +4,10 @@ import { Worker } from 'bullmq'
 import processes from '@/app/actions/processes'
 import { prisma } from '@/lib/db'
 
-const connection = new Redis("rediss://default:AUgTAAIncDI3M2M3OWM4ODZiYTk0MDczYmE0YjdhOThjNjNjZmZlNnAyMTg0NTE@rare-parakeet-18451.upstash.io:6379", {
+const connection = new Redis(process.env.REDIS_URL!, {
     maxRetriesPerRequest: null,
 })
+
 
 connection.on('connect', () => {
     console.log('Redis connect sucefullly')
