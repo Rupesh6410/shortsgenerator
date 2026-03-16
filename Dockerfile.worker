@@ -1,12 +1,32 @@
-FROM node:20-alpine
+# ---------- Stage 1: Install dependencies ---------- only for worker
+FROM node:20-alpine AS deps
 
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma
 
-RUN npm install --omit=dev
+RUN npm install
 
-COPY worker ./worker
+# ---------- Stage 2: Prepare application ----------
+FROM node:20-alpine AS builder
 
-CMD ["npm","run","worker"]
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+
+RUN npx prisma generate
+
+# ---------- Stage 3: Production runtime ----------
+FROM node:20-alpine
+
+WORKDIR /app
+
+
+RUN npm install -g tsx
+
+
+COPY --from=builder /app .
+
+CMD ["npm", "run", "worker"]
