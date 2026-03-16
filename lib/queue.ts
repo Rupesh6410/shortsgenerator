@@ -1,7 +1,7 @@
 import { Queue } from 'bullmq'
 import { Redis } from 'ioredis'
 
-const connection = new Redis("rediss://default:AUgTAAIncDI3M2M3OWM4ODZiYTk0MDczYmE0YjdhOThjNjNjZmZlNnAyMTg0NTE@rare-parakeet-18451.upstash.io:6379", {
+const connection = new Redis(process.env.REDIS_URL!, {
     maxRetriesPerRequest: null,
 })
 
