@@ -1,37 +1,21 @@
-# ---------- Stage 1: install dependencies ----------
-FROM node:20-alpine AS deps
-
-WORKDIR /app
-
-COPY package*.json ./
-COPY prisma ./prisma
-
-RUN npm install --omit=dev
-
-
-# ---------- Stage 2: build app ----------
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-RUN npx prisma generate
-
-
-# ---------- Stage 3: production runtime ----------
 FROM node:20-alpine
 
 WORKDIR /app
 
-# install tsx runtime only
+# Copy package.json first
+COPY package*.json ./
+
+# Copy prisma folder so postinstall can find schema
+COPY prisma ./prisma
+
+# Install dependencies (postinstall will now work)
+RUN npm install
+
+# Copy rest of the project
+COPY . .
+
+# Install tsx globally
 RUN npm install -g tsx
 
-# copy only necessary files
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/worker ./worker
-COPY --from=builder /app/package.json ./package.json
-
-CMD ["npm", "run", "worker"]
+# Run worker
+CMD ["tsx", "worker/worker.ts"]
