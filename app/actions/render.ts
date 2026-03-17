@@ -29,41 +29,38 @@ export const renderVideo = async (videoId: string) => {
 
         })
 
-        while (true) {
-            const progress = await getRenderProgress({
-                region: 'eu-north-1',
-                functionName:'remotion-render-4-0-377-mem2048mb-disk2048mb-120sec',
-                renderId,
-                bucketName,
-            })
-            if (progress.fatalErrorEncountered) {
-                console.log('redner failed:', progress.errors)
-            }
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-            if (progress.done) {
-                const videoUrl = progress.outputFile ||
-                    `https://${bucketName}.s3.eu-north-1.amazonaws.com/${renderId}/out.mp4`
+while (true) {
+    const progress = await getRenderProgress({
+        region: 'eu-north-1',
+        functionName: 'remotion-render-4-0-377-mem2048mb-disk2048mb-120sec',
+        renderId,
+        bucketName,
+    })
 
-                console.log(videoUrl)
+    if (progress.fatalErrorEncountered) {
+        console.log('render failed:', progress.errors)
+        break 
+    }
 
-                await prisma.video.update({
-                    where: {
-                        videoId: videoId
-                    },
-                    data: {
-                        videoUrl: videoUrl,
-                        processing: false
-                    }
-                })
+    if (progress.done) {
+        const videoUrl = progress.outputFile ||
+            `https://${bucketName}.s3.eu-north-1.amazonaws.com/${renderId}/out.mp4`
+        console.log(videoUrl)
+        await prisma.video.update({
+            where: { videoId },
+            data: { videoUrl, processing: false }
+        })
+        return videoUrl
+    }
 
-                return videoUrl
-            }
+    const percent = Math.floor(progress.overallProgress * 100)
+    const framesRendered = progress.framesRendered || 0
+    console.log(`progress is ${percent}%, frames rendered is ${framesRendered}`)
 
-            const framesRendered = progress.framesRendered || 0
-            const percent = Math.floor(progress.overallProgress * 100)
-
-            console.log(`progress is ${percent} , frames rendered is ${framesRendered}`)
-        }
+    await sleep(3000) 
+}
     }
     catch (error) {
         console.error('error while generating video in remotion', error)

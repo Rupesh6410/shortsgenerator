@@ -4,6 +4,7 @@ import { Worker } from 'bullmq'
 import processes from '../app/actions/processes'
 import { prisma } from '../lib/db'
 
+
 const connection = new Redis(process.env.REDIS_URL!, {
     maxRetriesPerRequest: null,
 })
