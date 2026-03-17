@@ -16,6 +16,7 @@ connection.on('error', (err) => {
     console.log('Redis connect error:', err)
 })
 
+
 const worker = new Worker('video-processing', async (job) => {
     const { videoId } = job.data
 
@@ -39,7 +40,7 @@ const worker = new Worker('video-processing', async (job) => {
         throw error
     }
 }, {
-     connection,
+    connection,
     concurrency: 2
 })
 

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db"
+import { prisma } from "../../lib/db"
 import { getRenderProgress, renderMediaOnLambda } from "@remotion/lambda/client"
 
 export const renderVideo = async (videoId: string) => {
@@ -26,17 +26,18 @@ export const renderVideo = async (videoId: string) => {
                 durationInFrames: data.duration
             },
             framesPerLambda: 300,
+
         })
 
         while (true) {
             const progress = await getRenderProgress({
                 region: 'eu-north-1',
-                functionName: 'remotion-render-4-0-377-mem2048mb-disk2048mb-120sec',
+                functionName:'remotion-render-4-0-377-mem2048mb-disk2048mb-120sec',
                 renderId,
                 bucketName,
             })
             if (progress.fatalErrorEncountered) {
-                console.log('render failed:', progress.errors)
+                console.log('redner failed:', progress.errors)
             }
 
             if (progress.done) {
@@ -69,3 +70,5 @@ export const renderVideo = async (videoId: string) => {
         throw error
     }
 }
+
+
