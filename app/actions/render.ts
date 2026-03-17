@@ -54,6 +54,7 @@ while (true) {
         })
         return videoUrl
     }
+    
 
     const percent = Math.floor(progress.overallProgress * 100)
     const framesRendered = progress.framesRendered || 0

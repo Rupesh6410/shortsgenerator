@@ -24,7 +24,7 @@ const Dashboard = async () => {
 
     return (
         <div className="container mx-auto p-6">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-8">
                 <h1 className="text-3xl font-bold">Your Videos</h1>
 
                 <div className="flex items-center gap-2">
@@ -54,7 +54,7 @@ const Dashboard = async () => {
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {videos.map((video) => (
                             <VideoCard key={video.videoId} video={video} />
                         ))}

@@ -81,7 +81,7 @@ const CreateProject = ({ user, credits }: { user: string | null; credits: number
         <div className='w-screen h-screen flex flex-col'>
             {
                 !user &&
-                <div className='flex justify-end gap-1 mr-7 mt-5'>
+                <div className='flex justify-end gap-2 p-4 sm:mr-7 sm:mt-5'>
                     <SignInButton>
                         <Button className='bg-black border border-gray-400 text-white  rounded-full mx-2 hover:bg-gray-900 transitioncolors duration-150  cursor-pointer'>
                             Sign In
@@ -95,7 +95,7 @@ const CreateProject = ({ user, credits }: { user: string | null; credits: number
                 </div>
             }
             {user &&
-                <div className='flex justify-end mr-7 mt-5'>
+                <div className='flex justify-end p-4 sm:mr-7 sm:mt-5'>
                     <TooltipCredits credits={credits} />
                     <Link href={"/dashboard"}>
                         <Button className='bg-gradient-to-br hover:opacity-80 text-white rounded-full from-[#3352CC] to-[#1C2D70] font-medium mx-2 cursor-pointer'>
@@ -114,14 +114,14 @@ const CreateProject = ({ user, credits }: { user: string | null; credits: number
 
             />
 
-            <h1 className="text-4xl md:text-4xl lg:text-6xl font-semibold max-w-7xl mx-auto text-center mt-6 relative z-20 py-6 bg-clip-text text-transparent bg-gradient-to-b from-neutral-800 via-neutral-700 to-neutral-700 dark:from-neutral-800 dark:via-white dark:to-white">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold max-w-7xl mx-auto text-center mt-6 relative z-20 py-6 px-4 bg-clip-text text-transparent bg-gradient-to-b from-neutral-800 via-neutral-700 to-neutral-700 dark:from-neutral-800 dark:via-white dark:to-white">
                 Generate realistic short
                 <div className='h-6'></div>
                 <Cover>warp speed</Cover>
             </h1>
 
             <div className='flex justify-center mt-auto mb-[400px]'>
-                <div className='relative rounded-3xl w-[500px] overflow-hidden'>
+                <div className='relative rounded-3xl w-[90%] sm:w-[500px] overflow-hidden'>
                     <ShineBorder
                         className='z-10'
                         shineColor={["#3352CC", "#3352CC", "#3352CC", "#3352CC"]}
